@@ -1,4 +1,3 @@
-use std::time::Duration;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 
 #[get("/")]

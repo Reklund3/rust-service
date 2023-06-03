@@ -1,7 +1,6 @@
 mod actor;
 mod server_impl;
 
-use tokio;
 use actor::{Echo, EchoActor};
 use coerce::actor::system::ActorSystem;
 use coerce::actor::IntoActor;
