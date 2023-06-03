@@ -1,0 +1,6 @@
+# CLion .idea folder
+.idea
+.DS_Store
+
+# build output dirs/files
+/target
