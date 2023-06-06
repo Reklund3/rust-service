@@ -1,13 +1,13 @@
 mod actor;
 mod server_impl;
 
-use actor::{Echo, EchoActor};
+use crate::actor::StartServer;
+use actor::{PostServer, Shutdown};
 use coerce::actor::system::ActorSystem;
 use coerce::actor::IntoActor;
 use coerce::remote::system::RemoteActorSystem;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use crate::actor::StartServer;
 
 #[macro_use]
 extern crate serde;
@@ -31,7 +31,9 @@ async fn main() {
     let remote = RemoteActorSystem::builder()
         .with_tag("example-main")
         .with_actor_system(system)
-        .with_handlers(|handlers| handlers.with_handler::<EchoActor, Echo>("EchoActor.Echo"))
+        .with_handlers(|handlers| {
+            handlers.with_handler::<PostServer, Shutdown>("PostServer.Shutdown")
+        })
         .build()
         .await;
 
@@ -42,10 +44,22 @@ async fn main() {
         .start()
         .await;
 
-    let echo = EchoActor
-        .into_actor(Some("echo-actor".to_string()), remote.actor_system())
+    let server = PostServer::new()
+        .into_actor(Some("post-service".to_string()), remote.actor_system())
         .await
-        .expect("unable to start echo actor");
+        .expect("unable to start post service actor");
 
-    echo.send(StartServer()).await.expect("sdf");
+    server
+        .send(StartServer())
+        .await
+        .expect("Failed to start the server.");
+
+    tokio::signal::ctrl_c()
+        .await
+        .expect("failed to listen for event");
+
+    server
+        .send(Shutdown())
+        .await
+        .expect("Failed to gracefully shutdown the server.");
 }

@@ -1,33 +1,63 @@
+use crate::server_impl;
+use actix_web::dev::ServerHandle;
 use coerce::actor::context::ActorContext;
 use coerce::actor::message::Handler;
 use coerce::actor::Actor;
 use coerce_macros::JsonMessage;
-use crate::server_impl;
 
-pub struct EchoActor;
+pub struct PostServer {
+    server: Option<ServerHandle>,
+}
 
-impl Actor for EchoActor {}
+impl PostServer {
+    pub fn new() -> Self {
+        Self { server: None }
+    }
+}
 
-#[derive(JsonMessage, Serialize, Deserialize)]
-#[result("String")]
-pub struct Echo(pub String);
+impl Actor for PostServer {}
 
 #[derive(JsonMessage, Serialize, Deserialize)]
 #[result("String")]
 pub struct StartServer();
 
 #[async_trait]
-impl Handler<Echo> for EchoActor {
-    async fn handle(&mut self, message: Echo, _ctx: &mut ActorContext) -> String {
-        println!("{:?}", message.0);
-        message.0
-    }
-}
-#[async_trait]
-impl Handler<StartServer> for EchoActor {
+impl Handler<StartServer> for PostServer {
     async fn handle(&mut self, _message: StartServer, _ctx: &mut ActorContext) -> String {
-        let _main1 = tokio::task::spawn_blocking(move ||{ server_impl::main()});
+        tokio::task::spawn_blocking(move || {
+            let s = server_impl::main();
+            // self.actor_ref(_ctx).send(AddServerHandler { result: s });
+            // self.server = Some(s);
+        });
         println!("Server started!!!");
         "Server started".to_string()
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum ShutdownResult {
+    Success(),
+    Failure(),
+}
+
+#[derive(JsonMessage, Serialize, Deserialize)]
+#[result(ShutdownResult)]
+pub struct Shutdown();
+
+#[async_trait]
+impl Handler<Shutdown> for PostServer {
+    async fn handle(&mut self, _message: Shutdown, _ctx: &mut ActorContext) -> ShutdownResult {
+        println!("Server received shutdown request.");
+        match self.server.clone() {
+            Some(handle) => {
+                println!("Releasing handle.");
+                handle.stop(true).await;
+                ShutdownResult::Success()
+            }
+            None => {
+                println!("Handle already released");
+                ShutdownResult::Success()
+            }
+        }
     }
 }
