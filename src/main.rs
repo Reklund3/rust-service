@@ -1,6 +1,6 @@
-mod actor;
-mod server_impl;
+mod testing;
 
+<<<<<<< Updated upstream
 use crate::actor::StartServer;
 use actor::{PostServer, Shutdown};
 use coerce::actor::system::ActorSystem;
@@ -8,10 +8,26 @@ use coerce::actor::IntoActor;
 use coerce::remote::system::RemoteActorSystem;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+=======
+use std::ffi::c_char;
+use jni::sys::jbyte;
+>>>>>>> Stashed changes
 
-#[macro_use]
-extern crate serde;
+fn main() {
+    let input: [c_char; 6] = [
+        'h' as c_char,
+        'e' as c_char,
+        'l' as c_char,
+        'l' as c_char,
+        'o' as c_char,
+        '\0' as c_char,
+    ];
+    let output: [jbyte; 5] = [ 0, 0, 0, 0, 0 ];
+    unsafe {
+        testing::things(input.as_ptr(), output.as_ptr());
+    }
 
+<<<<<<< Updated upstream
 #[macro_use]
 extern crate async_trait;
 
@@ -62,4 +78,9 @@ async fn main() {
         .send(Shutdown())
         .await
         .expect("Failed to gracefully shutdown the server.");
+=======
+    for n in output {
+        println!("{}", n);
+    }
+>>>>>>> Stashed changes
 }
