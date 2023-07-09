@@ -25,9 +25,9 @@ pub struct StartServer();
 impl Handler<StartServer> for PostServer {
     async fn handle(&mut self, _message: StartServer, _ctx: &mut ActorContext) -> String {
         tokio::task::spawn_blocking(move || {
-            let s = server_impl::main();
+            let _s = server_impl::main();
             // self.actor_ref(_ctx).send(AddServerHandler { result: s });
-            // self.server = Some(s);
+            // self.server = Some(s.unwrap());
         });
         println!("Server started!!!");
         "Server started".to_string()
