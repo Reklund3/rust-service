@@ -1,14 +1,24 @@
+use actix_protobuf::{ProtoBuf, ProtoBufResponseBuilder};
 use actix_web::dev::ServerHandle;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use prost::Message;
 
 #[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello world!")
 }
 
+/// ECHO BLOCK
+#[derive(Clone, PartialEq, Eq, Message)]
+pub struct Echo {
+    #[prost(string, tag = "1")]
+    pub msg: String,
+}
+
 #[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
+async fn echo(req_body: ProtoBuf<Echo>) -> impl Responder {
+    println!("model: {req_body:?}");
+    HttpResponse::Ok().protobuf(req_body.0)
 }
 
 async fn manual_hello() -> impl Responder {

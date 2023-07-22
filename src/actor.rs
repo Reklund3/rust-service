@@ -29,7 +29,7 @@ impl Handler<StartServer> for PostServer {
             // self.actor_ref(_ctx).send(AddServerHandler { result: s });
             // self.server = Some(s.unwrap());
         });
-        println!("Server started!!!");
+        println!("starting HTTP server at http://localhost:8080");
         "Server started".to_string()
     }
 }
